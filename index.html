@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Power BI Scope Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0C10;
+  --bg2:#10131A;
+  --bg3:#161B24;
+  --bg4:#1D2330;
+  --border:#252D3D;
+  --border2:#2E3A50;
+  --text:#ECF0F8;
+  --text2:#8A97B0;
+  --text3:#4F5E76;
+  --blue:#4F9EFF;
+  --blue-dim:rgba(79,158,255,.12);
+  --green:#2DD47A;
+  --green-dim:rgba(45,212,122,.12);
+  --orange:#F5A623;
+  --orange-dim:rgba(245,166,35,.12);
+  --red:#F05252;
+  --red-dim:rgba(240,82,82,.12);
+  --purple:#9B6EFF;
+  --purple-dim:rgba(155,110,255,.12);
+  --r:14px;
+  --r2:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:256px;min-width:256px;
+  background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:24px 16px;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;padding:0 6px;}
+.logo-mark{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,#4F9EFF,#9B6EFF);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;color:#fff;letter-spacing:-.5px;
+  flex-shrink:0;
+}
+.logo-text{font-size:15px;font-weight:700;line-height:1.2;}
+.logo-sub{font-size:11px;color:var(--text2);margin-top:2px;}
+.nav{display:flex;flex-direction:column;gap:4px;}
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 12px;border-radius:var(--r2);
+  cursor:pointer;transition:.15s;color:var(--text2);
+  border:1px solid transparent;font-size:14px;font-weight:500;
+  position:relative;
+}
+.nav-item:hover{background:var(--bg3);color:var(--text);}
+.nav-item.active{
+  background:var(--blue-dim);color:var(--blue);
+  border-color:rgba(79,158,255,.2);
+}
+.nav-num{
+  width:24px;height:24px;border-radius:7px;
+  background:rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+}
+.nav-item.active .nav-num{background:rgba(79,158,255,.2);color:var(--blue);}
+.nav-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--border2);margin-left:auto;
+}
+.nav-dot.done{background:var(--green);}
+.nav-dot.partial{background:var(--orange);}
+.sidebar-footer{margin-top:auto;padding-top:20px;border-top:1px solid var(--border);}
+.sidebar-footer-label{font-size:11px;color:var(--text3);margin-bottom:8px;}
+.sidebar-stat{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+
+/* ── CONTENT ── */
+.content{flex:1;padding:32px;max-width:960px;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;gap:20px;flex-wrap:wrap;}
+.title-row{display:flex;align-items:center;gap:10px;}
+.title-input{
+  background:none;border:none;outline:none;
+  font-size:28px;font-weight:800;color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  width:auto;min-width:100px;
+  border-bottom:2px solid transparent;transition:.2s;
+}
+.title-input:focus{border-bottom-color:var(--blue);}
+.subtitle{color:var(--text2);font-size:13px;margin-top:6px;}
+.actions{display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;}
+.btn{
+  border:none;outline:none;padding:10px 18px;border-radius:var(--r2);
+  cursor:pointer;font-weight:600;font-size:13px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  transition:.15s;display:flex;align-items:center;gap:7px;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-primary{background:linear-gradient(135deg,#4F9EFF,#2563EB);color:#fff;}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border2);}
+.btn-ghost:hover{background:var(--bg4);}
+.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(240,82,82,.25);}
+.btn-sm{padding:7px 13px;font-size:12px;}
+.btn-icon{padding:8px;border-radius:8px;}
+
+/* ── PROGRESS ── */
+.progress-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px 24px;margin-bottom:24px;
+}
+.progress-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.progress-label{font-size:14px;font-weight:600;}
+.progress-pct{font-size:14px;font-weight:700;color:var(--blue);}
+.bar-track{height:6px;background:var(--bg4);border-radius:999px;overflow:hidden;margin-bottom:20px;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),#9B6EFF);border-radius:999px;transition:width .4s ease;}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.step{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:10px;text-align:center;
+  font-size:12px;font-weight:600;color:var(--text2);transition:.2s;
+}
+.step.done{border-color:rgba(45,212,122,.3);color:var(--green);background:var(--green-dim);}
+.step.active{border-color:rgba(79,158,255,.3);color:var(--blue);background:var(--blue-dim);}
+
+/* ── SECTIONS ── */
+.section{display:none;}
+.section.visible{display:block;}
+
+/* ── GRID ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* ── CARD ── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px;
+}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.card-title{font-size:15px;font-weight:700;}
+.badge{
+  padding:5px 11px;border-radius:999px;
+  font-size:11px;font-weight:700;letter-spacing:.02em;
+}
+.badge-blue{background:var(--blue-dim);color:var(--blue);}
+.badge-green{background:var(--green-dim);color:var(--green);}
+.badge-orange{background:var(--orange-dim);color:var(--orange);}
+.badge-red{background:var(--red-dim);color:var(--red);}
+.badge-purple{background:var(--purple-dim);color:var(--purple);}
+
+/* ── FORM ── */
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.field:last-child{margin-bottom:0;}
+label.lbl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;}
+.inp,.sel,.tarea{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:11px 14px;
+  color:var(--text);outline:none;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;
+  transition:.15s;
+}
+.inp:focus,.sel:focus,.tarea:focus{border-color:var(--blue);background:var(--bg4);}
+.sel{cursor:pointer;}
+.tarea{resize:vertical;min-height:110px;line-height:1.6;}
+select.sel option{background:#1D2330;}
+
+/* ── STATUS ROWS ── */
+.status-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--bg3);
+  border-radius:10px;margin-bottom:10px;border:1px solid var(--border);
+}
+.status-row:last-child{margin-bottom:0;}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:var(--green);}
+.dot-orange{background:var(--orange);}
+.dot-red{background:var(--red);}
+.dot-blue{background:var(--blue);}
+.status-label{font-size:14px;font-weight:500;flex:1;}
+.status-val{font-size:13px;font-weight:700;}
+
+/* ── DYNAMIC LIST ── */
+.dyn-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.dyn-item{
+  display:flex;align-items:stretch;gap:10px;
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:10px;padding:12px 14px;
+}
+.dyn-item-body{flex:1;display:flex;flex-direction:column;gap:8px;}
+.dyn-row{display:flex;gap:10px;}
+.dyn-row .inp,.dyn-row .sel{flex:1;}
+.remove-btn{
+  background:none;border:none;color:var(--text3);cursor:pointer;
+  font-size:18px;align-self:flex-start;padding:4px;border-radius:6px;
+  transition:.15s;flex-shrink:0;
+}
+.remove-btn:hover{color:var(--red);background:var(--red-dim);}
+.add-btn{
+  width:100%;padding:11px;border-radius:10px;
+  background:none;border:1px dashed var(--border2);
+  color:var(--text2);font-size:13px;font-weight:600;
+  cursor:pointer;transition:.15s;
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.add-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim);}
+
+/* ── CHECKLIST ── */
+.check-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 14px;background:var(--bg3);
+  border-radius:10px;margin-bottom:10px;
+  border:1px solid var(--border);cursor:pointer;transition:.15s;
+}
+.check-item:hover{border-color:var(--border2);}
+.check-item.checked{border-color:rgba(45,212,122,.3);background:var(--green-dim);}
+.check-box{
+  width:20px;height:20px;border-radius:6px;
+  border:2px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:.15s;
+}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green);color:#fff;}
+.check-label{font-size:14px;font-weight:500;}
+.check-sub{font-size:12px;color:var(--text2);}
+
+/* ── TIMELINE PHASES ── */
+.phase-item{
+  background:var(--bg3);border:1px solid var(--border2);
+  border-radius:10px;padding:16px;margin-bottom:12px;
+}
+.phase-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.phase-num{
+  width:28px;height:28px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.phase-name{font-size:14px;font-weight:600;}
+.phase-dates{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.phase-bar-wrap{margin-top:12px;}
+.phase-bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:6px;}
+.phase-bar{height:5px;background:var(--bg4);border-radius:999px;overflow:hidden;}
+.phase-bar-fill{height:100%;border-radius:999px;transition:width .4s;}
+
+/* ── GANTT MINI ── */
+.gantt{margin-top:20px;background:var(--bg3);border-radius:10px;padding:16px;border:1px solid var(--border);}
+.gantt-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;}
+.gantt-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.gantt-label{font-size:12px;width:90px;flex-shrink:0;color:var(--text2);}
+.gantt-track{flex:1;height:16px;background:var(--bg4);border-radius:999px;overflow:hidden;position:relative;}
+.gantt-block{
+  height:100%;border-radius:999px;position:absolute;
+  display:flex;align-items:center;padding:0 8px;
+  font-size:10px;font-weight:600;color:#fff;transition:all .4s;
+}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;opacity:0;pointer-events:none;transition:.2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:18px;width:640px;max-width:90vw;
+  max-height:85vh;overflow:hidden;display:flex;flex-direction:column;
+  transform:translateY(16px);transition:.2s;
+}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-head{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 24px;border-bottom:1px solid var(--border);
+}
+.modal-title{font-size:17px;font-weight:700;}
+.modal-close{
+  background:var(--bg3);border:1px solid var(--border2);
+  color:var(--text2);width:32px;height:32px;border-radius:8px;
+  cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.modal-close:hover{color:var(--text);background:var(--bg4);}
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.summary-section{margin-bottom:24px;}
+.summary-section:last-child{margin-bottom:0;}
+.summary-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.summary-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.summary-row{display:flex;gap:16px;margin-bottom:8px;font-size:14px;}
+.summary-key{color:var(--text2);min-width:140px;flex-shrink:0;}
+.summary-val{color:var(--text);font-weight:500;word-break:break-word;}
+.kpi-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;
+  margin:3px;
+}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{
+  background:var(--bg4);border:1px solid var(--border2);
+  border-radius:10px;padding:12px 18px;
+  font-size:13px;font-weight:600;
+  display:flex;align-items:center;gap:10px;
+  transform:translateX(120%);transition:.3s;
+  pointer-events:auto;min-width:220px;
+}
+.toast.show{transform:translateX(0);}
+.toast-icon{font-size:16px;}
+
+/* ── PRIORITY PILLS ── */
+.priority-row{display:flex;gap:8px;flex-wrap:wrap;}
+.pill{
+  padding:7px 14px;border-radius:999px;font-size:12px;font-weight:700;
+  border:1px solid var(--border2);background:var(--bg3);color:var(--text2);
+  cursor:pointer;transition:.15s;
+}
+.pill:hover{border-color:var(--blue);color:var(--blue);}
+.pill.sel-alta{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+.pill.sel-media{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+.pill.sel-baixa{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+
+/* ── TAGS ── */
+.tag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;
+  background:var(--bg4);border:1px solid var(--border2);color:var(--text2);
+  margin:3px;cursor:pointer;transition:.15s;
+}
+.tag:hover{border-color:var(--red);color:var(--red);}
+
+/* ── MONO ── */
+.mono{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+
+/* ── PRINT ── */
+#print-summary{display:none;}
+@media print{
+  @page{margin:18mm 20mm;size:A4;}
+  body{background:#fff!important;color:#111!important;font-size:11pt;}
+  .app,.modal-overlay,.toast-container{display:none!important;}
+  #print-summary{display:block!important;}
+
+  /* typography reset for print */
+  #print-summary *{font-family:'Plus Jakarta Sans',Arial,sans-serif;}
+
+  .pr-page{width:100%;max-width:100%;}
+
+  /* header */
+  .pr-header{display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:2px solid #1a56db;padding-bottom:14px;margin-bottom:20px;}
+  .pr-logo{display:flex;align-items:center;gap:10px;}
+  .pr-logo-mark{width:34px;height:34px;border-radius:8px;background:#1a56db;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-weight:800;font-size:13px;flex-shrink:0;}
+  .pr-logo-text{font-size:10pt;font-weight:700;color:#1a56db;}
+  .pr-logo-sub{font-size:8pt;color:#666;margin-top:1px;}
+  .pr-header-right{text-align:right;}
+  .pr-title{font-size:18pt;font-weight:800;color:#0f172a;line-height:1.2;}
+  .pr-date{font-size:8pt;color:#666;margin-top:4px;}
+
+  /* section label */
+  .pr-section-label{
+    font-size:7pt;font-weight:700;color:#1a56db;
+    text-transform:uppercase;letter-spacing:.08em;
+    border-bottom:1px solid #dbeafe;padding-bottom:4px;
+    margin:16px 0 8px;
+  }
+
+  /* two-col meta grid */
+  .pr-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:4px;}
+  .pr-meta-row{display:flex;gap:6px;align-items:baseline;font-size:9.5pt;}
+  .pr-meta-key{color:#64748b;min-width:90px;flex-shrink:0;font-weight:600;}
+  .pr-meta-val{color:#0f172a;font-weight:500;}
+
+  /* objective box */
+  .pr-obj{
+    background:#f8fafc;border:1px solid #e2e8f0;border-left:3px solid #1a56db;
+    border-radius:4px;padding:10px 14px;font-size:9.5pt;
+    color:#1e293b;line-height:1.6;margin-bottom:4px;
+  }
+
+  /* table */
+  .pr-table{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:4px;}
+  .pr-table th{
+    background:#f1f5f9;color:#334155;font-weight:700;
+    padding:6px 10px;text-align:left;
+    border-bottom:1px solid #cbd5e1;font-size:8.5pt;
+  }
+  .pr-table td{
+    padding:6px 10px;border-bottom:1px solid #f1f5f9;
+    color:#1e293b;vertical-align:top;
+  }
+  .pr-table tr:last-child td{border-bottom:none;}
+
+  /* priority badges */
+  .pr-badge{
+    display:inline-block;padding:2px 8px;border-radius:999px;
+    font-size:7.5pt;font-weight:700;
+  }
+  .pr-badge-alta{background:#fee2e2;color:#b91c1c;}
+  .pr-badge-media{background:#fef3c7;color:#92400e;}
+  .pr-badge-baixa{background:#d1fae5;color:#065f46;}
+  .pr-badge-ok{background:#d1fae5;color:#065f46;}
+  .pr-badge-pend{background:#fef3c7;color:#92400e;}
+  .pr-badge-bloq{background:#fee2e2;color:#b91c1c;}
+
+  /* status row */
+  .pr-status-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .pr-status-item{
+    display:flex;align-items:center;gap:8px;
+    background:#f8fafc;border:1px solid #e2e8f0;
+    border-radius:4px;padding:7px 10px;font-size:9pt;
+  }
+  .pr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .pr-dot-g{background:#16a34a;}
+  .pr-dot-o{background:#d97706;}
+  .pr-dot-r{background:#dc2626;}
+  .pr-dot-b{background:#2563eb;}
+
+  /* checklist */
+  .pr-checks{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+  .pr-check{display:flex;align-items:center;gap:7px;font-size:9pt;padding:5px 0;}
+  .pr-check-box{
+    width:14px;height:14px;border-radius:3px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:9pt;
+  }
+  .pr-check-done{background:#16a34a;color:#fff;}
+  .pr-check-no{background:#f1f5f9;border:1px solid #cbd5e1;color:transparent;}
+
+  /* footer */
+  .pr-footer{
+    margin-top:28px;padding-top:10px;
+    border-top:1px solid #e2e8f0;
+    display:flex;justify-content:space-between;
+    font-size:8pt;color:#94a3b8;
+  }
+  .pr-sig{
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;
+    margin-top:20px;
+  }
+  .pr-sig-box{border-top:1px solid #cbd5e1;padding-top:6px;font-size:8.5pt;}
+  .pr-sig-role{font-size:7.5pt;color:#64748b;margin-bottom:20px;}
+  .pr-sig-line{font-weight:600;color:#0f172a;}
+
+  /* page break */
+  .pr-break{page-break-before:always;}
+}
+
+@media(max-width:900px){
+  .sidebar{display:none;}
+  .content{padding:20px;}
+  .steps{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">BI</div>
+    <div>
+      <div class="logo-text">Scope Manager</div>
+      <div class="logo-sub">Power BI Governance</div>
+    </div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <div class="nav-item active" data-sec="0">
+      <div class="nav-num">1</div> Contexto
+      <div class="nav-dot" id="dot0"></div>
+    </div>
+    <div class="nav-item" data-sec="1">
+      <div class="nav-num">2</div> Fontes
+      <div class="nav-dot" id="dot1"></div>
+    </div>
+    <div class="nav-item" data-sec="2">
+      <div class="nav-num">3</div> KPIs
+      <div class="nav-dot" id="dot2"></div>
+    </div>
+    <div class="nav-item" data-sec="3">
+      <div class="nav-num">4</div> Design
+      <div class="nav-dot" id="dot3"></div>
+    </div>
+    <div class="nav-item" data-sec="4">
+      <div class="nav-num">5</div> Segurança
+      <div class="nav-dot" id="dot4"></div>
+    </div>
+    <div class="nav-item" data-sec="5">
+      <div class="nav-num">6</div> Cronograma
+      <div class="nav-dot" id="dot5"></div>
+    </div>
+    <div class="nav-item" data-sec="6">
+      <div class="nav-num">7</div> Governança
+      <div class="nav-dot" id="dot6"></div>
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-label">Resumo rápido</div>
+    <div class="sidebar-stat"><span style="color:var(--text2)">KPIs</span><span id="sb-kpis" style="font-weight:700">0</span></div>
+    <div class="sidebar-stat"><span style="color:var(--text2)">Fontes</span><span id="sb-fontes" style="font-weight:700">0</span></div>
+    <div class="sidebar-stat"><span style="color:var(--text2)">Progresso</span><span id="sb-pct" style="font-weight:700;color:var(--blue)">0%</span></div>
+  </div>
+</aside>
+
+<!-- ── CONTENT ── -->
+<main class="content">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="title-row">
+        <input class="title-input" id="project-title" value="Dashboard Comercial" spellcheck="false"/>
+      </div>
+      <div class="subtitle" id="subtitle-area">Intake · Governança · Acompanhamento · Power BI</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-ghost" onclick="openModal()">📋 Resumo Executivo</button>
+      <button class="btn btn-ghost" onclick="exportPDF()">⬇ Exportar PDF</button>
+      <button class="btn btn-primary" onclick="saveProject()">💾 Salvar Projeto</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-card">
+    <div class="progress-top">
+      <span class="progress-label">Progresso do projeto</span>
+      <span class="progress-pct" id="pct-label">0% preenchido</span>
+    </div>
+    <div class="bar-track"><div class="bar-fill" id="prog-bar" style="width:0%"></div></div>
+    <div class="steps">
+      <div class="step" id="step0">Escopo</div>
+      <div class="step" id="step1">Modelagem</div>
+      <div class="step" id="step2">Desenvolvimento</div>
+      <div class="step" id="step3">Validação</div>
+      <div class="step" id="step4">Entrega</div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 0: CONTEXTO ══════════ -->
+  <div class="section visible" id="sec0">
+    <div class="grid2">
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-head">
+          <span class="card-title">Contexto do Projeto</span>
+          <span class="badge badge-blue">Estratégico</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Objetivo do Dashboard</label>
+          <textarea class="tarea" id="ctx-objetivo" data-tracked="true" placeholder="Descreva o objetivo principal, o problema que o dashboard resolve e o valor esperado…">Criar dashboard comercial com acompanhamento diário de vendas, margem e crescimento por região.</textarea>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label class="lbl">Público-alvo</label>
+            <input class="inp" id="ctx-publico" data-tracked="true" value="Diretoria Comercial" placeholder="Ex: Gerentes de vendas, Diretoria…"/>
+          </div>
+          <div class="field">
+            <label class="lbl">Frequência de atualização</label>
+            <select class="sel" id="ctx-freq" data-tracked="true">
+              <option value="diario">Diário</option>
+              <option value="semanal">Semanal</option>
+              <option value="mensal">Mensal</option>
+              <option value="tempo-real">Tempo real</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Tipo de projeto</label>
+            <select class="sel" id="ctx-tipo" data-tracked="true">
+              <option value="novo">Novo dashboard</option>
+              <option value="melhoria">Melhoria de existente</option>
+              <option value="migracao">Migração</option>
+              <option value="poc">Prova de conceito</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="lbl">Prioridade estratégica</label>
+            <select class="sel" id="ctx-prioridade" data-tracked="true">
+              <option value="alta">Alta — Impacto direto no negócio</option>
+              <option value="media">Média — Melhoria operacional</option>
+              <option value="baixa">Baixa — Nice to have</option>
+            </select>
+          </div>
+        </div>
+        <div class="field" style="margin-top:4px">
+          <label class="lbl">Contexto adicional / observações</label>
+          <textarea class="tarea" id="ctx-obs" data-tracked="true" placeholder="Informações extras, restrições, dependências…" style="min-height:80px"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Status Geral</span>
+          <span class="badge badge-orange" id="status-badge">Em andamento</span>
+        </div>
+        <div id="status-rows">
+          <div class="status-row">
+            <div class="dot dot-green"></div>
+            <span class="status-label">Dados</span>
+            <select class="sel" id="st-dados" style="width:130px;padding:6px 10px" onchange="updateStatusBadge()">
+              <option value="ok">✅ OK</option>
+              <option value="pendente">⚠ Pendente</option>
+              <option value="bloqueado">🔴 Bloqueado</option>
+            </select>
+          </div>
+          <div class="status-row">
+            <div class="dot dot-orange"></div>
+            <span class="status-label">KPIs</span>
+            <select class="sel" id="st-kpis" style="width:130px;padding:6px 10px" onchange="updateStatusBadge()">
+              <option value="pendente">⚠ Pendente</option>
+              <option value="ok">✅ OK</option>
+              <option value="bloqueado">🔴 Bloqueado</option>
+            </select>
+          </div>
+          <div class="status-row">
+            <div class="dot dot-red"></div>
+            <span class="status-label">Acessos</span>
+            <select class="sel" id="st-acessos" style="width:130px;padding:6px 10px" onchange="updateStatusBadge()">
+              <option value="bloqueado">🔴 Bloqueado</option>
+              <option value="ok">✅ OK</option>
+              <option value="pendente">⚠ Pendente</option>
+            </select>
+          </div>
+          <div class="status-row">
+            <div class="dot dot-blue"></div>
+            <span class="status-label">Modelagem</span>
+            <select class="sel" id="st-model" style="width:130px;padding:6px 10px" onchange="updateStatusBadge()">
+              <option value="pendente">⚠ Pendente</option>
+              <option value="ok">✅ OK</option>
+              <option value="bloqueado">🔴 Bloqueado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Contatos</span>
+          <span class="badge badge-purple">Responsáveis</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Solicitante / Sponsor</label>
+          <input class="inp" id="ctx-sponsor" data-tracked="true" placeholder="Nome · e-mail"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Analista responsável</label>
+          <input class="inp" id="ctx-analista" data-tracked="true" placeholder="Nome · e-mail"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Squad / Área</label>
+          <input class="inp" id="ctx-squad" data-tracked="true" placeholder="Ex: Squad Comercial"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 1: FONTES ══════════ -->
+  <div class="section" id="sec1">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Fontes de Dados</span>
+        <span class="badge badge-blue" id="fontes-count-badge">0 fontes</span>
+      </div>
+      <div class="dyn-list" id="fontes-list"></div>
+      <button class="add-btn" onclick="addFonte()">+ Adicionar fonte de dados</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 2: KPIs ══════════ -->
+  <div class="section" id="sec2">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">KPIs Principais</span>
+        <span class="badge badge-green" id="kpis-count-badge">0 KPIs</span>
+      </div>
+      <div class="dyn-list" id="kpis-list"></div>
+      <button class="add-btn" onclick="addKPI()">+ Adicionar KPI</button>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 3: DESIGN ══════════ -->
+  <div class="section" id="sec3">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Layout & Estrutura</span>
+          <span class="badge badge-purple">Wireframe</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Número de páginas</label>
+          <input class="inp" id="ds-paginas" data-tracked="true" type="number" min="1" value="3" placeholder="Ex: 4"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Tipo de layout</label>
+          <select class="sel" id="ds-layout" data-tracked="true">
+            <option value="exec">Executivo — resumo visual</option>
+            <option value="operacional">Operacional — detalhado</option>
+            <option value="misto">Misto — exec + detalhe</option>
+            <option value="mobile">Mobile-first</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Tema de cores</label>
+          <select class="sel" id="ds-tema" data-tracked="true">
+            <option value="corporativo">Corporativo padrão</option>
+            <option value="escuro">Dark mode</option>
+            <option value="claro">Light mode</option>
+            <option value="customizado">Customizado (especificar abaixo)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Cores personalizadas (hex ou nome)</label>
+          <input class="inp" id="ds-cores" data-tracked="true" placeholder="Ex: #0F5CA8, #E8A100"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Logo / Identidade visual</label>
+          <select class="sel" id="ds-logo" data-tracked="true">
+            <option value="sim">Sim — incluir logo da empresa</option>
+            <option value="nao">Não necessário</option>
+            <option value="cliente">Logo do cliente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Filtros & Interatividade</span>
+          <span class="badge badge-orange">UX</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Filtros obrigatórios</label>
+          <textarea class="tarea" id="ds-filtros" data-tracked="true" placeholder="Liste os filtros necessários: Período, Região, Produto…" style="min-height:90px"></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl">Navegação entre páginas</label>
+          <select class="sel" id="ds-nav" data-tracked="true">
+            <option value="botoes">Botões de navegação</option>
+            <option value="abas">Abas (tabs)</option>
+            <option value="menu">Menu lateral</option>
+            <option value="nenhuma">Sem navegação</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Drillthrough / Drill-down</label>
+          <select class="sel" id="ds-drill" data-tracked="true">
+            <option value="sim">Sim — necessário</option>
+            <option value="nao">Não necessário</option>
+            <option value="futuro">Futuro</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Observações de design</label>
+          <textarea class="tarea" id="ds-obs" data-tracked="true" placeholder="Referências, inspirações, restrições visuais…" style="min-height:80px"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 4: SEGURANÇA ══════════ -->
+  <div class="section" id="sec4">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Controle de Acesso (RLS)</span>
+          <span class="badge badge-red">Segurança</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Row-Level Security (RLS)</label>
+          <select class="sel" id="seg-rls" data-tracked="true">
+            <option value="necessario">Necessário — configurar RLS</option>
+            <option value="nao">Não necessário</option>
+            <option value="futuro">Futuro — definir depois</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Regras de segmentação RLS</label>
+          <textarea class="tarea" id="seg-rls-rules" data-tracked="true" placeholder="Ex: Cada gerente vê apenas sua região. Diretores veem tudo…" style="min-height:90px"></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl">Rótulo de sensibilidade</label>
+          <select class="sel" id="seg-label" data-tracked="true">
+            <option value="interno">Interno</option>
+            <option value="confidencial">Confidencial</option>
+            <option value="publico">Público</option>
+            <option value="altamente-confidencial">Altamente Confidencial</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Workspace & Publicação</span>
+          <span class="badge badge-blue">Ambiente</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Workspace de destino</label>
+          <input class="inp" id="seg-workspace" data-tracked="true" value="BI - Comercial" placeholder="Nome do workspace"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Ambiente de publicação</label>
+          <select class="sel" id="seg-ambiente" data-tracked="true">
+            <option value="prod">Produção</option>
+            <option value="homolog">Homologação → Produção</option>
+            <option value="dev">Dev → Homolog → Prod</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Pipeline de deployment</label>
+          <select class="sel" id="seg-pipeline" data-tracked="true">
+            <option value="deployment">Deployment Pipeline (nativo)</option>
+            <option value="manual">Publicação manual</option>
+            <option value="devops">Azure DevOps / CI-CD</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Embed / Publicação externa</label>
+          <select class="sel" id="seg-embed" data-tracked="true">
+            <option value="nao">Não — apenas Power BI Service</option>
+            <option value="sharepoint">SharePoint / Teams</option>
+            <option value="app">Embed em aplicação</option>
+            <option value="public">Publicar na web (público)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-head">
+          <span class="card-title">Usuários com Acesso</span>
+          <span class="badge badge-purple" id="users-badge">0 usuários</span>
+        </div>
+        <div class="dyn-list" id="users-list"></div>
+        <button class="add-btn" onclick="addUser()">+ Adicionar usuário</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 5: CRONOGRAMA ══════════ -->
+  <div class="section" id="sec5">
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">Cronograma por Fase</span>
+        <span class="badge badge-orange" id="days-badge">0 dias</span>
+      </div>
+
+      <div id="phases-list">
+        <div class="phase-item" data-phase="0">
+          <div class="phase-head">
+            <div class="phase-num" style="background:var(--blue-dim);color:var(--blue)">1</div>
+            <span class="phase-name">Levantamento & Escopo</span>
+          </div>
+          <div class="phase-dates">
+            <div class="field" style="margin:0">
+              <label class="lbl">Início</label>
+              <input class="inp" type="date" id="ph0-start" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Fim</label>
+              <input class="inp" type="date" id="ph0-end" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Responsável</label>
+              <input class="inp" id="ph0-resp" data-tracked="true" placeholder="Nome"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-item" data-phase="1">
+          <div class="phase-head">
+            <div class="phase-num" style="background:var(--purple-dim);color:var(--purple)">2</div>
+            <span class="phase-name">Modelagem de Dados</span>
+          </div>
+          <div class="phase-dates">
+            <div class="field" style="margin:0">
+              <label class="lbl">Início</label>
+              <input class="inp" type="date" id="ph1-start" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Fim</label>
+              <input class="inp" type="date" id="ph1-end" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Responsável</label>
+              <input class="inp" id="ph1-resp" data-tracked="true" placeholder="Nome"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-item" data-phase="2">
+          <div class="phase-head">
+            <div class="phase-num" style="background:var(--orange-dim);color:var(--orange)">3</div>
+            <span class="phase-name">Desenvolvimento</span>
+          </div>
+          <div class="phase-dates">
+            <div class="field" style="margin:0">
+              <label class="lbl">Início</label>
+              <input class="inp" type="date" id="ph2-start" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Fim</label>
+              <input class="inp" type="date" id="ph2-end" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Responsável</label>
+              <input class="inp" id="ph2-resp" data-tracked="true" placeholder="Nome"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-item" data-phase="3">
+          <div class="phase-head">
+            <div class="phase-num" style="background:var(--green-dim);color:var(--green)">4</div>
+            <span class="phase-name">Validação & Homologação</span>
+          </div>
+          <div class="phase-dates">
+            <div class="field" style="margin:0">
+              <label class="lbl">Início</label>
+              <input class="inp" type="date" id="ph3-start" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Fim</label>
+              <input class="inp" type="date" id="ph3-end" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Responsável</label>
+              <input class="inp" id="ph3-resp" data-tracked="true" placeholder="Nome"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-item" data-phase="4">
+          <div class="phase-head">
+            <div class="phase-num" style="background:var(--red-dim);color:var(--red)">5</div>
+            <span class="phase-name">Entrega & Publicação</span>
+          </div>
+          <div class="phase-dates">
+            <div class="field" style="margin:0">
+              <label class="lbl">Início</label>
+              <input class="inp" type="date" id="ph4-start" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Fim</label>
+              <input class="inp" type="date" id="ph4-end" data-tracked="true" onchange="updateGantt()"/>
+            </div>
+            <div class="field" style="margin:0">
+              <label class="lbl">Responsável</label>
+              <input class="inp" id="ph4-resp" data-tracked="true" placeholder="Nome"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gantt" id="gantt-view" style="display:none">
+        <div class="gantt-title">Visão Gantt</div>
+        <div id="gantt-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SECTION 6: GOVERNANÇA ══════════ -->
+  <div class="section" id="sec6">
+    <div class="grid2">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Responsabilidades</span>
+          <span class="badge badge-blue">Ownership</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Dono do relatório (Report Owner)</label>
+          <input class="inp" id="gov-owner" data-tracked="true" placeholder="Nome · e-mail"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Stakeholder de negócio</label>
+          <input class="inp" id="gov-stakeholder" data-tracked="true" placeholder="Nome · e-mail"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Revisor técnico</label>
+          <input class="inp" id="gov-revisor" data-tracked="true" placeholder="Nome · e-mail"/>
+        </div>
+        <div class="field">
+          <label class="lbl">Processo de revisão periódica</label>
+          <select class="sel" id="gov-revisao" data-tracked="true">
+            <option value="mensal">Mensal</option>
+            <option value="trimestral">Trimestral</option>
+            <option value="semestral">Semestral</option>
+            <option value="nenhum">Sem revisão definida</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl">Documentação de suporte</label>
+          <input class="inp" id="gov-doc" data-tracked="true" placeholder="Link Confluence, Notion, SharePoint…"/>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Checklist de Aprovação</span>
+          <span class="badge badge-green" id="check-badge">0/6</span>
+        </div>
+        <div id="checklist">
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-kpis">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">KPIs aprovados pelo negócio</div>
+              <div class="check-sub">Definições validadas com stakeholders</div>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-dados">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Dados homologados</div>
+              <div class="check-sub">Qualidade e completude verificados</div>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-layout">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Layout validado</div>
+              <div class="check-sub">Wireframe aprovado pelo usuário final</div>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-rls">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Regras de segurança configuradas</div>
+              <div class="check-sub">RLS testado e validado</div>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-testes">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Testes de UAT concluídos</div>
+              <div class="check-sub">Aceite do usuário registrado</div>
+            </div>
+          </div>
+          <div class="check-item" onclick="toggleCheck(this)" data-key="check-pub">
+            <div class="check-box"></div>
+            <div>
+              <div class="check-label">Publicação autorizada</div>
+              <div class="check-sub">Aprovação formal para go-live</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-head">
+          <span class="card-title">Notas Finais & Observações</span>
+          <span class="badge badge-orange">Encerramento</span>
+        </div>
+        <div class="field">
+          <label class="lbl">Critérios de aceite</label>
+          <textarea class="tarea" id="gov-aceite" data-tracked="true" placeholder="O que deve estar funcionando para o projeto ser considerado concluído?"></textarea>
+        </div>
+        <div class="field">
+          <label class="lbl">Riscos e dependências</label>
+          <textarea class="tarea" id="gov-riscos" data-tracked="true" placeholder="Riscos identificados, dependências externas, gargalos…" style="min-height:80px"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- ── MODAL: Resumo Executivo ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-head">
+      <div class="modal-title">📋 Resumo Executivo</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ── TOASTS ── -->
+<div class="toast-container" id="toasts"></div>
+
+<!-- ── PRINT SUMMARY (hidden screen, shown only on @media print) ── -->
+<div id="print-summary"></div>
+
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let currentSection = 0;
+let fontes = [];
+let kpis = [];
+let users = [];
+
+/* ═══════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════ */
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    const i = parseInt(el.dataset.sec);
+    switchSection(i);
+  });
+});
+
+function switchSection(i) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelector(`.nav-item[data-sec="${i}"]`).classList.add('active');
+  document.getElementById(`sec${i}`).classList.add('visible');
+  currentSection = i;
+}
+
+/* ═══════════════════════════════════════════
+   FONTES
+═══════════════════════════════════════════ */
+function addFonte(data = {}) {
+  const id = Date.now();
+  fontes.push({ id });
+  const list = document.getElementById('fontes-list');
+  const div = document.createElement('div');
+  div.className = 'dyn-item';
+  div.dataset.fonteid = id;
+  div.innerHTML = `
+    <div class="dyn-item-body">
+      <div class="dyn-row">
+        <input class="inp" placeholder="Nome da fonte" value="${data.nome||''}" oninput="updateCounts()"/>
+        <select class="sel" style="max-width:160px">
+          ${['SQL Server','Oracle','Excel/CSV','API REST','SharePoint','Dataverse','Fabric Lakehouse','Outro'].map(t=>`<option${(data.tipo===t)?' selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="dyn-row">
+        <input class="inp" placeholder="Owner / Responsável" value="${data.owner||''}"/>
+        <select class="sel" style="max-width:140px">
+          ${['✅ Disponível','⚠ Em aprovação','🔴 Bloqueado','🔵 A validar'].map(s=>`<option${(data.status===s)?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <input class="inp" placeholder="Observações / detalhes de conexão" value="${data.obs||''}"/>
+    </div>
+    <button class="remove-btn" onclick="removeFonte(${id})" title="Remover">✕</button>
+  `;
+  list.appendChild(div);
+  updateCounts();
+}
+
+function removeFonte(id) {
+  fontes = fontes.filter(f => f.id !== id);
+  document.querySelector(`.dyn-item[data-fonteid="${id}"]`).remove();
+  updateCounts();
+}
+
+/* ═══════════════════════════════════════════
+   KPIs
+═══════════════════════════════════════════ */
+function addKPI(data = {}) {
+  const id = Date.now();
+  kpis.push({ id });
+  const list = document.getElementById('kpis-list');
+  const div = document.createElement('div');
+  div.className = 'dyn-item';
+  div.dataset.kpiid = id;
+  div.innerHTML = `
+    <div class="dyn-item-body">
+      <div class="dyn-row">
+        <input class="inp" placeholder="Nome do KPI" value="${data.nome||''}"/>
+        <select class="sel" style="max-width:130px">
+          ${['Alta','Média','Baixa'].map(p=>`<option${(data.prior===p)?' selected':''}>${p}</option>`).join('')}
+        </select>
+      </div>
+      <input class="inp mono" placeholder="Fórmula / DAX — ex: DIVIDE(SUM(Vendas[Valor]), [Meta])" value="${data.dax||''}"/>
+      <input class="inp" placeholder="Descrição e contexto de negócio" value="${data.desc||''}"/>
+    </div>
+    <button class="remove-btn" onclick="removeKPI(${id})" title="Remover">✕</button>
+  `;
+  list.appendChild(div);
+  updateCounts();
+}
+
+function removeKPI(id) {
+  kpis = kpis.filter(k => k.id !== id);
+  document.querySelector(`.dyn-item[data-kpiid="${id}"]`).remove();
+  updateCounts();
+}
+
+/* ═══════════════════════════════════════════
+   USERS
+═══════════════════════════════════════════ */
+function addUser(data = {}) {
+  const id = Date.now();
+  users.push({ id });
+  const list = document.getElementById('users-list');
+  const div = document.createElement('div');
+  div.className = 'dyn-item';
+  div.dataset.userid = id;
+  div.innerHTML = `
+    <div class="dyn-item-body">
+      <div class="dyn-row">
+        <input class="inp" placeholder="Nome" value="${data.nome||''}"/>
+        <input class="inp" placeholder="E-mail" value="${data.email||''}"/>
+        <select class="sel" style="max-width:140px">
+          ${['Viewer','Member','Contributor','Admin'].map(r=>`<option${(data.role===r)?' selected':''}>${r}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <button class="remove-btn" onclick="removeUser(${id})" title="Remover">✕</button>
+  `;
+  list.appendChild(div);
+  updateCounts();
+}
+
+function removeUser(id) {
+  users = users.filter(u => u.id !== id);
+  document.querySelector(`.dyn-item[data-userid="${id}"]`).remove();
+  updateCounts();
+}
+
+/* ═══════════════════════════════════════════
+   CHECKLIST
+═══════════════════════════════════════════ */
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.querySelector('.check-box').textContent = el.classList.contains('checked') ? '✓' : '';
+  updateCounts();
+}
+
+/* ═══════════════════════════════════════════
+   COUNTS & PROGRESS
+═══════════════════════════════════════════ */
+function updateCounts() {
+  const nFontes = document.querySelectorAll('#fontes-list .dyn-item').length;
+  const nKPIs = document.querySelectorAll('#kpis-list .dyn-item').length;
+  const nUsers = document.querySelectorAll('#users-list .dyn-item').length;
+  const nChecked = document.querySelectorAll('#checklist .check-item.checked').length;
+
+  document.getElementById('fontes-count-badge').textContent = nFontes + ' fonte' + (nFontes !== 1 ? 's' : '');
+  document.getElementById('kpis-count-badge').textContent = nKPIs + ' KPIs';
+  document.getElementById('users-badge').textContent = nUsers + ' usuário' + (nUsers !== 1 ? 's' : '');
+  document.getElementById('check-badge').textContent = nChecked + '/6';
+  document.getElementById('sb-kpis').textContent = nKPIs;
+  document.getElementById('sb-fontes').textContent = nFontes;
+
+  // Dot indicators
+  const v = val => v => v && v.trim();
+  const g = id => (document.getElementById(id)||{}).value||'';
+
+  const sec0score = [g('ctx-objetivo'),g('ctx-publico'),g('ctx-sponsor'),g('ctx-analista')].filter(x=>x.trim()).length;
+  setDot(0, sec0score >= 3 ? 'done' : sec0score > 0 ? 'partial' : '');
+  setDot(1, nFontes >= 2 ? 'done' : nFontes > 0 ? 'partial' : '');
+  setDot(2, nKPIs >= 3 ? 'done' : nKPIs > 0 ? 'partial' : '');
+  const ds = [g('ds-paginas'),g('ds-filtros')].filter(x=>x.trim()).length;
+  setDot(3, ds >= 2 ? 'done' : ds > 0 ? 'partial' : '');
+  setDot(4, g('seg-workspace').trim() ? 'done' : '');
+  const cronoDone = ['ph0-start','ph0-end','ph1-start','ph1-end'].filter(id=>g(id)).length;
+  setDot(5, cronoDone >= 4 ? 'done' : cronoDone > 0 ? 'partial' : '');
+  setDot(6, nChecked >= 4 ? 'done' : nChecked > 0 ? 'partial' : '');
+
+  // Overall %
+  let score = 0;
+  if (g('ctx-objetivo').trim()) score += 10;
+  if (g('ctx-publico').trim()) score += 5;
+  if (g('ctx-sponsor').trim()) score += 5;
+  if (nFontes >= 1) score += 15;
+  if (nKPIs >= 1) score += 15;
+  if (g('ds-paginas').trim()) score += 5;
+  if (g('seg-workspace').trim()) score += 5;
+  if (g('gov-owner').trim()) score += 5;
+  score += Math.min(nChecked * 5, 20);
+  if (g('ph0-start') && g('ph0-end')) score += 10;
+
+  score = Math.min(score, 100);
+  document.getElementById('prog-bar').style.width = score + '%';
+  document.getElementById('pct-label').textContent = score + '% preenchido';
+  document.getElementById('sb-pct').textContent = score + '%';
+
+  // Steps
+  const steps = ['step0','step1','step2','step3','step4'];
+  const thresholds = [20,40,65,85,100];
+  steps.forEach((id, i) => {
+    const el = document.getElementById(id);
+    el.className = 'step';
+    if (score >= thresholds[i]) el.classList.add('done');
+    else if (score >= (thresholds[i-1]||0)) el.classList.add('active');
+  });
+}
+
+function setDot(i, state) {
+  const d = document.getElementById('dot' + i);
+  if (!d) return;
+  d.className = 'nav-dot' + (state ? ' ' + state : '');
+}
+
+/* ═══════════════════════════════════════════
+   STATUS BADGE
+═══════════════════════════════════════════ */
+function updateStatusBadge() {
+  const vals = ['st-dados','st-kpis','st-acessos','st-model'].map(id => document.getElementById(id).value);
+  const badge = document.getElementById('status-badge');
+  if (vals.every(v => v === 'ok')) {
+    badge.className = 'badge badge-green'; badge.textContent = 'Pronto';
+  } else if (vals.some(v => v === 'bloqueado')) {
+    badge.className = 'badge badge-red'; badge.textContent = 'Bloqueado';
+  } else {
+    badge.className = 'badge badge-orange'; badge.textContent = 'Em andamento';
+  }
+}
+
+/* ═══════════════════════════════════════════
+   GANTT
+═══════════════════════════════════════════ */
+const PHASE_COLORS = ['#4F9EFF','#9B6EFF','#F5A623','#2DD47A','#F05252'];
+const PHASE_LABELS = ['Escopo','Modelagem','Desenvolvimento','Validação','Entrega'];
+
+function updateGantt() {
+  const dates = [0,1,2,3,4].map(i => ({
+    start: document.getElementById(`ph${i}-start`).value,
+    end: document.getElementById(`ph${i}-end`).value
+  }));
+
+  const allStarts = dates.map(d => d.start).filter(Boolean);
+  const allEnds = dates.map(d => d.end).filter(Boolean);
+  if (!allStarts.length || !allEnds.length) return;
+
+  const minDate = new Date(Math.min(...allStarts.map(d => new Date(d))));
+  const maxDate = new Date(Math.max(...allEnds.map(d => new Date(d))));
+  const totalDays = (maxDate - minDate) / 86400000 || 1;
+
+  document.getElementById('days-badge').textContent = Math.round(totalDays) + ' dias';
+
+  const gantt = document.getElementById('gantt-view');
+  gantt.style.display = 'block';
+  const rows = document.getElementById('gantt-rows');
+  rows.innerHTML = '';
+
+  dates.forEach((d, i) => {
+    if (!d.start || !d.end) return;
+    const s = new Date(d.start);
+    const e = new Date(d.end);
+    const left = ((s - minDate) / 86400000 / totalDays * 100).toFixed(1);
+    const width = Math.max(((e - s) / 86400000 / totalDays * 100), 2).toFixed(1);
+    rows.innerHTML += `
+      <div class="gantt-row">
+        <div class="gantt-label">${PHASE_LABELS[i]}</div>
+        <div class="gantt-track">
+          <div class="gantt-block" style="left:${left}%;width:${width}%;background:${PHASE_COLORS[i]}">
+            ${width > 12 ? Math.round((e-s)/86400000)+'d' : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  updateCounts();
+}
+
+/* ═══════════════════════════════════════════
+   SAVE
+═══════════════════════════════════════════ */
+function collectData() {
+  const data = { title: document.getElementById('project-title').value };
+  document.querySelectorAll('[data-tracked]').forEach(el => {
+    if (el.id) data[el.id] = el.value;
+  });
+  data.fontes = [...document.querySelectorAll('#fontes-list .dyn-item')].map(item => {
+    const inps = item.querySelectorAll('input,select');
+    return { nome: inps[0]?.value, tipo: inps[1]?.value, owner: inps[2]?.value, status: inps[3]?.value, obs: inps[4]?.value };
+  });
+  data.kpis = [...document.querySelectorAll('#kpis-list .dyn-item')].map(item => {
+    const inps = item.querySelectorAll('input,select');
+    return { nome: inps[0]?.value, prior: inps[1]?.value, dax: inps[2]?.value, desc: inps[3]?.value };
+  });
+  data.users = [...document.querySelectorAll('#users-list .dyn-item')].map(item => {
+    const inps = item.querySelectorAll('input,select');
+    return { nome: inps[0]?.value, email: inps[1]?.value, role: inps[2]?.value };
+  });
+  data.checks = [...document.querySelectorAll('#checklist .check-item')].map(el => ({
+    key: el.dataset.key, checked: el.classList.contains('checked')
+  }));
+  return data;
+}
+
+function saveProject() {
+  const data = collectData();
+  localStorage.setItem('scopeManager_v2', JSON.stringify(data));
+  showToast('✅', 'Projeto salvo com sucesso!', 'green');
+}
+
+function loadProject() {
+  const raw = localStorage.getItem('scopeManager_v2');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    if (data.title) document.getElementById('project-title').value = data.title;
+    Object.keys(data).forEach(k => {
+      const el = document.getElementById(k);
+      if (el && el.dataset.tracked !== undefined) el.value = data[k] || '';
+    });
+    (data.fontes || []).forEach(f => addFonte(f));
+    (data.kpis || []).forEach(k => addKPI(k));
+    (data.users || []).forEach(u => addUser(u));
+    (data.checks || []).forEach(c => {
+      const el = document.querySelector(`[data-key="${c.key}"]`);
+      if (el && c.checked) { el.classList.add('checked'); el.querySelector('.check-box').textContent = '✓'; }
+    });
+    updateGantt();
+    updateCounts();
+    updateStatusBadge();
+    showToast('📂', 'Dados carregados!', 'blue');
+  } catch(e) {}
+}
+
+/* ═══════════════════════════════════════════
+   EXPORT PDF — builds a compact 1-2 page summary
+═══════════════════════════════════════════ */
+function exportPDF() {
+  const d = collectData();
+  const title = document.getElementById('project-title').value || 'Projeto';
+  const today = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'});
+
+  /* ── helpers ── */
+  const esc = s => String(s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const dash = s => esc(s) || '—';
+  const priBadge = p => {
+    const m = {Alta:'alta',Média:'media',Baixa:'baixa'};
+    return `<span class="pr-badge pr-badge-${m[p]||'pend'}">${p||'—'}</span>`;
+  };
+  const statusBadge = s => {
+    if (!s) return '—';
+    if (s.includes('OK') || s.includes('Disponível')) return `<span class="pr-badge pr-badge-ok">${esc(s)}</span>`;
+    if (s.includes('Bloqueado')) return `<span class="pr-badge pr-badge-bloq">${esc(s)}</span>`;
+    return `<span class="pr-badge pr-badge-pend">${esc(s)}</span>`;
+  };
+
+  /* ── status dots ── */
+  const stMap = {ok:'g',pendente:'o',bloqueado:'r'};
+  const stVal = id => (document.getElementById(id)||{}).value||'pendente';
+
+  /* ── KPI rows ── */
+  const kpiRows = (d.kpis||[]).length
+    ? (d.kpis||[]).map(k => `
+        <tr>
+          <td><strong>${esc(k.nome)||'—'}</strong></td>
+          <td>${priBadge(k.prior)}</td>
+          <td style="font-family:monospace;font-size:8pt;color:#475569">${esc(k.dax)||'—'}</td>
+          <td style="color:#475569">${esc(k.desc)||'—'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="4" style="color:#94a3b8;text-align:center">Nenhum KPI cadastrado</td></tr>`;
+
+  /* ── Fontes rows ── */
+  const fonteRows = (d.fontes||[]).length
+    ? (d.fontes||[]).map(f => `
+        <tr>
+          <td><strong>${esc(f.nome)||'—'}</strong></td>
+          <td>${esc(f.tipo)||'—'}</td>
+          <td>${esc(f.owner)||'—'}</td>
+          <td>${statusBadge(f.status)}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="4" style="color:#94a3b8;text-align:center">Nenhuma fonte cadastrada</td></tr>`;
+
+  /* ── Timeline rows ── */
+  const phases = [
+    {label:'Levantamento & Escopo', s:'ph0-start',e:'ph0-end',r:'ph0-resp'},
+    {label:'Modelagem de Dados',     s:'ph1-start',e:'ph1-end',r:'ph1-resp'},
+    {label:'Desenvolvimento',        s:'ph2-start',e:'ph2-end',r:'ph2-resp'},
+    {label:'Validação',              s:'ph3-start',e:'ph3-end',r:'ph3-resp'},
+    {label:'Entrega & Publicação',   s:'ph4-start',e:'ph4-end',r:'ph4-resp'},
+  ];
+  const fmtDate = v => v ? new Date(v+'T00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}) : '—';
+  const phaseRows = phases.map(p => {
+    const s = (document.getElementById(p.s)||{}).value;
+    const e = (document.getElementById(p.e)||{}).value;
+    const r = (document.getElementById(p.r)||{}).value;
+    if (!s && !e && !r) return '';
+    const days = (s && e) ? Math.round((new Date(e)-new Date(s))/86400000)+'d' : '—';
+    return `<tr>
+      <td>${p.label}</td>
+      <td>${fmtDate(s)}</td>
+      <td>${fmtDate(e)}</td>
+      <td style="text-align:center">${days}</td>
+      <td>${esc(r)||'—'}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+  const timelineTable = phaseRows
+    ? `<table class="pr-table">
+        <thead><tr><th>Fase</th><th>Início</th><th>Fim</th><th>Duração</th><th>Responsável</th></tr></thead>
+        <tbody>${phaseRows}</tbody>
+       </table>`
+    : `<p style="color:#94a3b8;font-size:9pt">Cronograma não preenchido</p>`;
+
+  /* ── Checklist ── */
+  const checkLabels = {
+    'check-kpis':'KPIs aprovados pelo negócio',
+    'check-dados':'Dados homologados',
+    'check-layout':'Layout validado',
+    'check-rls':'Segurança (RLS) configurada',
+    'check-testes':'Testes UAT concluídos',
+    'check-pub':'Publicação autorizada'
+  };
+  const nChecked = (d.checks||[]).filter(c=>c.checked).length;
+  const checkItems = (d.checks||[]).map(c =>
+    `<div class="pr-check">
+      <div class="pr-check-box ${c.checked?'pr-check-done':'pr-check-no'}">${c.checked?'✓':''}</div>
+      <span style="${c.checked?'color:#166534':'color:#64748b'}">${checkLabels[c.key]||c.key}</span>
+    </div>`
+  ).join('');
+
+  /* ── Overall progress ── */
+  const pct = document.getElementById('pct-label').textContent;
+
+  /* ── Build HTML ── */
+  document.getElementById('print-summary').innerHTML = `
+<div class="pr-page">
+
+  <!-- HEADER -->
+  <div class="pr-header">
+    <div class="pr-logo">
+      <div class="pr-logo-mark">BI</div>
+      <div>
+        <div class="pr-logo-text">Scope Manager</div>
+        <div class="pr-logo-sub">Power BI Governance</div>
+      </div>
+    </div>
+    <div class="pr-header-right">
+      <div class="pr-title">${esc(title)}</div>
+      <div class="pr-date">Gerado em ${today} · ${pct}</div>
+    </div>
+  </div>
+
+  <!-- IDENTIFICAÇÃO & STATUS -->
+  <div class="pr-section-label">Identificação do Projeto</div>
+  <div class="pr-meta">
+    <div class="pr-meta-row"><span class="pr-meta-key">Público-alvo</span><span class="pr-meta-val">${dash(d['ctx-publico'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Sponsor</span><span class="pr-meta-val">${dash(d['ctx-sponsor'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Tipo</span><span class="pr-meta-val">${dash((d['ctx-tipo']||'').replace('-',' '))}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Analista</span><span class="pr-meta-val">${dash(d['ctx-analista'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Frequência</span><span class="pr-meta-val">${dash(d['ctx-freq'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Squad / Área</span><span class="pr-meta-val">${dash(d['ctx-squad'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Prioridade</span><span class="pr-meta-val">${dash((d['ctx-prioridade']||'').replace('-',' '))}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Owner (gov.)</span><span class="pr-meta-val">${dash(d['gov-owner'])}</span></div>
+  </div>
+
+  <!-- OBJETIVO -->
+  <div class="pr-section-label">Objetivo</div>
+  <div class="pr-obj">${esc(d['ctx-objetivo']) || '<span style="color:#94a3b8">Não preenchido</span>'}</div>
+
+  <!-- STATUS TÉCNICO -->
+  <div class="pr-section-label">Status Técnico</div>
+  <div class="pr-status-grid">
+    <div class="pr-status-item"><div class="pr-dot pr-dot-${stMap[stVal('st-dados')]||'o'}"></div><strong>Dados:</strong>&nbsp;${document.getElementById('st-dados')?.options[document.getElementById('st-dados')?.selectedIndex]?.text||'—'}</div>
+    <div class="pr-status-item"><div class="pr-dot pr-dot-${stMap[stVal('st-kpis')]||'o'}"></div><strong>KPIs:</strong>&nbsp;${document.getElementById('st-kpis')?.options[document.getElementById('st-kpis')?.selectedIndex]?.text||'—'}</div>
+    <div class="pr-status-item"><div class="pr-dot pr-dot-${stMap[stVal('st-acessos')]||'r'}"></div><strong>Acessos:</strong>&nbsp;${document.getElementById('st-acessos')?.options[document.getElementById('st-acessos')?.selectedIndex]?.text||'—'}</div>
+    <div class="pr-status-item"><div class="pr-dot pr-dot-${stMap[stVal('st-model')]||'o'}"></div><strong>Modelagem:</strong>&nbsp;${document.getElementById('st-model')?.options[document.getElementById('st-model')?.selectedIndex]?.text||'—'}</div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="pr-section-label">KPIs Principais (${(d.kpis||[]).length})</div>
+  <table class="pr-table">
+    <thead><tr><th>KPI</th><th>Prioridade</th><th>Fórmula / DAX</th><th>Descrição</th></tr></thead>
+    <tbody>${kpiRows}</tbody>
+  </table>
+
+  <!-- FONTES -->
+  <div class="pr-section-label">Fontes de Dados (${(d.fontes||[]).length})</div>
+  <table class="pr-table">
+    <thead><tr><th>Fonte</th><th>Tipo</th><th>Owner</th><th>Status</th></tr></thead>
+    <tbody>${fonteRows}</tbody>
+  </table>
+
+  <!-- DESIGN -->
+  <div class="pr-section-label">Design & Estrutura</div>
+  <div class="pr-meta">
+    <div class="pr-meta-row"><span class="pr-meta-key">Nº de páginas</span><span class="pr-meta-val">${dash(d['ds-paginas'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Layout</span><span class="pr-meta-val">${dash((d['ds-layout']||'').split('—')[0])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Tema de cores</span><span class="pr-meta-val">${dash(d['ds-tema'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Drill-through</span><span class="pr-meta-val">${dash(d['ds-drill'])}</span></div>
+  </div>
+  ${d['ds-filtros'] ? `<div class="pr-obj" style="border-left-color:#7c3aed"><strong>Filtros:</strong> ${esc(d['ds-filtros'])}</div>` : ''}
+
+  <!-- SEGURANÇA -->
+  <div class="pr-section-label">Segurança & Governança</div>
+  <div class="pr-meta">
+    <div class="pr-meta-row"><span class="pr-meta-key">Workspace</span><span class="pr-meta-val">${dash(d['seg-workspace'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">RLS</span><span class="pr-meta-val">${dash(d['seg-rls'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Pipeline</span><span class="pr-meta-val">${dash(d['seg-pipeline'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Embed</span><span class="pr-meta-val">${dash(d['seg-embed'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Rótulo</span><span class="pr-meta-val">${dash(d['seg-label'])}</span></div>
+    <div class="pr-meta-row"><span class="pr-meta-key">Revisão periódica</span><span class="pr-meta-val">${dash(d['gov-revisao'])}</span></div>
+  </div>
+
+  <!-- CRONOGRAMA -->
+  <div class="pr-section-label">Cronograma</div>
+  ${timelineTable}
+
+  <!-- CHECKLIST -->
+  <div class="pr-section-label">Checklist de Aprovação (${nChecked}/6)</div>
+  <div class="pr-checks">${checkItems}</div>
+
+  ${d['gov-aceite'] ? `
+  <div class="pr-section-label">Critérios de Aceite</div>
+  <div class="pr-obj" style="border-left-color:#16a34a">${esc(d['gov-aceite'])}</div>` : ''}
+
+  ${d['gov-riscos'] ? `
+  <div class="pr-section-label">Riscos & Dependências</div>
+  <div class="pr-obj" style="border-left-color:#dc2626">${esc(d['gov-riscos'])}</div>` : ''}
+
+  <!-- ASSINATURAS -->
+  <div class="pr-section-label" style="margin-top:24px">Aprovação & Assinaturas</div>
+  <div class="pr-sig">
+    <div class="pr-sig-box">
+      <div class="pr-sig-role">Solicitante / Sponsor</div>
+      <div class="pr-sig-line">${esc(d['ctx-sponsor'])||'___________________________'}</div>
+    </div>
+    <div class="pr-sig-box">
+      <div class="pr-sig-role">Analista Responsável</div>
+      <div class="pr-sig-line">${esc(d['ctx-analista'])||'___________________________'}</div>
+    </div>
+    <div class="pr-sig-box">
+      <div class="pr-sig-role">Revisor Técnico</div>
+      <div class="pr-sig-line">${esc(d['gov-revisor'])||'___________________________'}</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="pr-footer">
+    <span>Power BI Scope Manager · ${esc(title)}</span>
+    <span>${today}</span>
+  </div>
+
+</div>`;
+
+  showToast('🖨', 'Preparando PDF…', 'orange');
+  setTimeout(() => window.print(), 400);
+}
+
+/* ═══════════════════════════════════════════
+   MODAL — RESUMO EXECUTIVO
+═══════════════════════════════════════════ */
+function openModal() {
+  const d = collectData();
+  const title = document.getElementById('project-title').value;
+
+  const kpiChips = (d.kpis||[]).map(k => {
+    const colors = {Alta:'var(--red)',Média:'var(--orange)',Baixa:'var(--green)'};
+    const bgs = {Alta:'var(--red-dim)',Média:'var(--orange-dim)',Baixa:'var(--green-dim)'};
+    return `<span class="kpi-chip" style="background:${bgs[k.prior]||'var(--bg4)'};color:${colors[k.prior]||'var(--text2)'};border:1px solid ${colors[k.prior]||'var(--border2)'}">
+      ${k.nome||'KPI sem nome'} <span style="opacity:.6;font-size:10px">${k.prior||''}</span>
+    </span>`;
+  }).join('') || '<span style="color:var(--text2);font-size:13px">Nenhum KPI cadastrado</span>';
+
+  const fonteItems = (d.fontes||[]).map(f =>
+    `<div class="summary-row"><span class="summary-key">${f.nome||'—'}</span><span class="summary-val">${f.tipo||''} ${f.status ? '· '+f.status : ''}</span></div>`
+  ).join('') || '<div style="color:var(--text2);font-size:13px">Nenhuma fonte cadastrada</div>';
+
+  const checksOk = (d.checks||[]).filter(c => c.checked).length;
+  const checkLabels = {
+    'check-kpis': 'KPIs aprovados',
+    'check-dados': 'Dados homologados',
+    'check-layout': 'Layout validado',
+    'check-rls': 'Segurança configurada',
+    'check-testes': 'UAT concluído',
+    'check-pub': 'Publicação autorizada'
+  };
+  const checkList = (d.checks||[]).map(c =>
+    `<div class="summary-row">
+      <span class="summary-key" style="color:${c.checked?'var(--green)':'var(--text3)'}">
+        ${c.checked?'✅':'⬜'} ${checkLabels[c.key]||c.key}
+      </span>
+    </div>`
+  ).join('');
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="summary-section">
+      <div class="summary-title">Identificação</div>
+      <div class="summary-row"><span class="summary-key">Projeto</span><span class="summary-val" style="font-size:16px;font-weight:700">${title}</span></div>
+      <div class="summary-row"><span class="summary-key">Público-alvo</span><span class="summary-val">${d['ctx-publico']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Tipo</span><span class="summary-val">${(d['ctx-tipo']||'').replace('-',' ')}</span></div>
+      <div class="summary-row"><span class="summary-key">Frequência</span><span class="summary-val">${d['ctx-freq']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Prioridade</span><span class="summary-val">${(d['ctx-prioridade']||'').replace('-',' ')}</span></div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">Objetivo</div>
+      <div style="font-size:14px;color:var(--text);line-height:1.6;padding:12px 14px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        ${d['ctx-objetivo']||'<span style="color:var(--text3)">Não preenchido</span>'}
+      </div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">Responsáveis</div>
+      <div class="summary-row"><span class="summary-key">Sponsor</span><span class="summary-val">${d['ctx-sponsor']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Analista</span><span class="summary-val">${d['ctx-analista']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Owner (gov.)</span><span class="summary-val">${d['gov-owner']||'—'}</span></div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">KPIs (${(d.kpis||[]).length})</div>
+      <div style="padding:4px 0">${kpiChips}</div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">Fontes de dados (${(d.fontes||[]).length})</div>
+      ${fonteItems}
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">Infraestrutura</div>
+      <div class="summary-row"><span class="summary-key">Workspace</span><span class="summary-val">${d['seg-workspace']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">RLS</span><span class="summary-val">${d['seg-rls']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Pipeline</span><span class="summary-val">${d['seg-pipeline']||'—'}</span></div>
+      <div class="summary-row"><span class="summary-key">Embed</span><span class="summary-val">${d['seg-embed']||'—'}</span></div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-title">Aprovação (${checksOk}/6)</div>
+      ${checkList}
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:24px">
+      <button class="btn btn-primary" onclick="saveProject();closeModal()">💾 Salvar e Fechar</button>
+      <button class="btn btn-ghost" onclick="exportPDF()">⬇ Exportar PDF</button>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+function showToast(icon, msg, color) {
+  const colors = {green:'var(--green)',orange:'var(--orange)',blue:'var(--blue)',red:'var(--red)'};
+  const container = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  t.style.borderLeftColor = colors[color]||'var(--border2)';
+  t.style.borderLeftWidth = '3px';
+  container.appendChild(t);
+  requestAnimationFrame(() => { requestAnimationFrame(() => t.classList.add('show')); });
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 350); }, 2800);
+}
+
+/* ═══════════════════════════════════════════
+   AUTO-SAVE & LIVE UPDATE
+═══════════════════════════════════════════ */
+document.addEventListener('input', () => { updateCounts(); });
+document.addEventListener('change', () => { updateCounts(); autoSaveDraft(); });
+document.getElementById('project-title').addEventListener('input', updateCounts);
+
+let autoSaveTimer;
+function autoSaveDraft() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => {
+    localStorage.setItem('scopeManager_v2', JSON.stringify(collectData()));
+  }, 1200);
+}
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('scopeManager_v2');
+  if (saved) {
+    loadProject();
+  } else {
+    // Default sample data
+    addFonte({ nome: 'DW Comercial', tipo: 'SQL Server', owner: 'Squad Dados', status: '✅ Disponível' });
+    addKPI({ nome: 'Receita Total', prior: 'Alta', dax: 'SUM(Faturamento[Valor])', desc: 'Faturamento bruto no período' });
+    addKPI({ nome: 'Crescimento MoM', prior: 'Média', dax: 'DIVIDE([Receita Total], [Receita Mês Ant]) - 1', desc: 'Variação % vs mês anterior' });
+    updateCounts();
+  }
+});
+</script>
+</body>
+</html>
